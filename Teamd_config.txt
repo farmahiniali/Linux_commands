@@ -1,0 +1,36 @@
+# - 
+# install 
+yum install teamd NetworkManager-team
+
+#Procedure
+# 1.	Create a team interface:
+nmcli connection add type team con-name team0 ifname team0 team.runner lacp ipv4.method manual
+
+# This command creates a network team named team0 that uses the lacp runner.
+# in order to set IP
+# 1.1 set IP
+nmcli connection modify team0 ipv4.addresses '192.0.2.1/24'
+# 1.2 set gateway
+nmcli connection modify team0 ipv4.gateway '192.0.2.254'
+# 1.3 set DNS
+nmcli connection modify team0 ipv4.dns '192.0.2.253'
+
+# 2. ADD physical interfaces to team 
+# enp7s0 and enp8s0 are not configured. To use these devices as ports, 
+# add connection profiles in the next step. Note that you can only use Ethernet interfaces in a team
+# that are not assigned to any connection.
+nmcli con add con-name team-enp7s0 ifname enp7s0 type team-slave master team0
+nmcli con add con-name team-enp8s0 ifname enp8s0 type team-slave master team0
+
+# 3. down and up link to apply configs 
+nmcli con down "team-enp7s0"
+nmcli con down "team-enp8s0"
+nmcli con down "team0"
+nmcli con reload
+nmcli con up team-enp7s0
+nmcli con up team-enp8s0
+nmcli con up team0
+
+
+# 4. Display the network interfaces, 
+nmcli device status
